@@ -1,0 +1,256 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <style>
+        .box {
+            height: 100px;
+            width: 100px;
+            background: blue;
+        }
+
+        .box-two {
+            height: 100px;
+            width: 100px;
+            background: red;
+        }
+
+        .box-three {
+            height: 100px;
+            width: 100px;
+            background: purple;
+        }
+
+        input {
+            margin: 10px;
+            display: block;
+        }
+
+        button {
+            margin: 10px;
+            display: block;
+        }
+
+        [v-cloak] {
+            display: none;
+            /* v-cloak is a vue directive that prevents elements from being shown until the whole 
+                app is rendered. */
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Vue basics</h1>
+
+    <div id="app" v-cloak>
+        <!-- VUE DIRECTIVES-->
+
+        <!-- RENDERING AN ELEMENT RETURNED FROM THE DATA METHOD OF THE VUE OBJ-->
+        <h2>{{greeting}}</h2>
+
+        <div>
+            {{statement}}
+        </div>
+
+        <!-- TWO WAY BINDING EXAMPLE WITH V-MODEL-->
+
+
+        <!-- VUE IF-ELSE -->
+        <div v-if="isVisible" class="box">box</div>
+        <!-- <div v-else-if="isVisible" class="box-two">box</div>
+                <div v-else class="box-three">box</div> -->
+
+
+        <!-- VUE VISIBILITY OF ELEMENTS-->
+        <div v-show="isVisible" class="box">box</div>
+
+        <!-- v-if and v-show work the same way, 
+                    but v-if will not render the element in the dom if the boolean value isVisible is set
+                TO FALSE -->
+
+        <!-- VUE DIRECTIVES-->
+
+        <!-- VUE METHODS AND EVENTS-->
+
+        <div>
+            <button @click="showBox">Show Box with @click </button>
+            <!-- @click can also take handy event modifiers like .right (for right mouse click) 
+            and .prevent, to prevent form submission -->
+            <button v-on:click="showBox">Show Box with v-on:click</button>
+        </div>
+
+        <!-- @click is shorthand for the v-on:click event -->
+
+        <div>
+            <div>
+                <div>
+                    <p> Input text: {{input}}
+                    </p>
+                </div>
+                <input type="text" @keyup.enter="logInput" v-model="input" name="v-model-example">
+
+            </div>
+        </div>
+        <div>
+            <div>
+                <div>
+                    <p>Custom Input text: {{input}}</p>
+                    <p>(keyup logs input with !!!! appended)</p>
+                </div>
+                <input type="text" @keyup.enter="logCustomInput(input + '!!!!!!!')" v-model="input"
+                    name="v-model-example">
+
+            </div>
+        </div>
+
+        <!-- VUE METHODS AND EVENTS-->
+
+        <!-- VUE COMPONENTS -->
+
+        <login-form />
+
+        <!-- VUE COMPONENTS -->
+
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@next"></script>
+
+    <script>
+        let app = Vue.createApp({
+            data: function () {
+                return {
+                    "greeting": "hi",
+                    "statement": "vue is jquery with extra steps.",
+                    "input": "",
+                    "isVisible": false
+                }
+            },
+            methods: {
+                showBox() {
+                    if (this.isVisible) {
+                        this.isVisible = false;
+                    } else {
+                        this.isVisible = true;
+                    }
+                },
+                logInput() {
+                    console.log(this.input);
+                },
+                logCustomInput(input) {
+                    console.log(input);
+                }
+            }
+        });
+
+        // using a basic component 
+
+        app.component('login-form', {
+            template: `
+            <div>
+                <form @submit.prevent="justChecking">
+                    <h2>{{title}}</h2>
+                    <p>This is a component template for a login form. </p>
+
+                    <!-- WE can use loops to simplify this process -->
+
+<custom-input v-for="input in inputs" :type="input.type" v-model="input.value" :label="input.label"/>
+
+                    <!-- Props are a way of passing information from a aparent components to its children; 
+                        we use the v-bind directive to accomplish this, in the format:
+
+                        :prop="" is shorthand for v-bind
+                        v-bind:prop="a variable in our present component/vue object"
+                        v-model="variable" in the paent component creates a modelValue prop in the child component,
+                        which we access below tih getters and setters
+
+                        this is referenced in the props array of the child component, and can then be used
+                        as if it were a variable in our child component 
+                        -->
+                    <button type="submit">Login</button>
+                </form>
+            </div>
+            `,
+            components: ['custom-input'],
+            data: function () {
+                return {
+                    title: "Hey. Login here.",
+                    email: "preopulated data", // these appear in the child components because of v-model 
+                    password: "ibid",
+                    emailLabel: "ENter your email",
+                    passwordLabel: "Enter your password",
+                    inputs: [
+                        {
+                            label: "Email",
+                            value: "email@gmail.com",
+                            type: "email"
+                        },
+                        {
+                            label: "password",
+                            value: "password",
+                            type: "password"
+                        }
+                    ]
+                }
+            },
+            methods: {
+                justChecking() {
+                    // console.log("Your email is:" + this.email);
+                    // console.log("Your password is: " + this.password);
+                    console.log("sumi");
+                    console.log(this.inputs[0].value);
+                    // for(let i = 0; i++; i < this.inputs.length){
+                    //     console.log(this.inputs[i].value);
+                    //     console.log(this.inputs);
+                    // }
+                },
+            }
+        })
+
+        app.component('custom-input', {
+            props: ["label", "modelValue", "type"], // modelValue references v-model='Variable' in the parent component
+            template: `
+            <label>{{label}}</label>
+            <input :type="type" v-model="inputValue"> 
+            `,
+            computed: {
+
+                inputValue: {
+                    get() {
+
+                        return this.modelValue;
+                    },
+                    set(value) {
+                        console.log(value);
+
+                        this.$emit("update:modelValue", value);
+                        /* $emit listens for events, e.g., the update event, so when modelValue is updated 
+                        v-model in the parent component is listening for a change in this element in the child component, 
+                        and in turn updates its data obj/vars accordingly. 
+    
+                        This matters because props that are passed to children are immutable
+    
+                        */
+                    }
+                }
+
+            },
+            /* 
+            modelValue is implicitly set to the string specified in v-mdoel="variable" in the parent component
+
+            ie inputValue references modelValue
+            */
+            // data: function(){
+            //     return {
+            //         email:"",
+            //         password:"",
+            //         label:"login inputs"
+            //     }
+            // }
+
+        });
+        app.mount("#app");
+    </script>
+</body>
+
+</html>
